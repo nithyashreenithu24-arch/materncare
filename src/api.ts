@@ -1,4 +1,4 @@
-import { User, HealthRecord, PredictionResult, NutritionPlan, ChatMessage, DoctorNote, AdminStats, AuditLog, ModelMetric, DirectMessage } from './types';
+import { User, HealthRecord, PredictionResult, NutritionPlan, ChatMessage, DoctorNote, AdminStats, AuditLog, ModelMetric, DirectMessage, Appointment } from './types';
 
 const getHeaders = (token?: string) => {
   const headers: Record<string, string> = {
@@ -152,6 +152,45 @@ export const api = {
     const res = await fetch(`/api/reports/${userId}`, { headers: getHeaders() });
     if (!res.ok) throw new Error('Failed to load report data');
     return res.json();
+  },
+
+  // Appointments
+  async getAppointments(): Promise<Appointment[]> {
+    const res = await fetch('/api/appointments', { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to load all appointments');
+    return res.json();
+  },
+
+  async getUserAppointments(userId: string): Promise<Appointment[]> {
+    const res = await fetch(`/api/appointments/${userId}`, { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to load user appointments');
+    return res.json();
+  },
+
+  async requestAppointment(data: { reason: string; type: string; scheduledDate?: string }): Promise<Appointment> {
+    const res = await fetch('/api/appointments/request', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to request appointment');
+    return res.json();
+  },
+
+  async approveAppointment(aptId: string): Promise<void> {
+    const res = await fetch(`/api/appointments/${aptId}/approve`, {
+      method: 'PUT',
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to approve appointment');
+  },
+
+  async rejectAppointment(aptId: string): Promise<void> {
+    const res = await fetch(`/api/appointments/${aptId}/reject`, {
+      method: 'PUT',
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to reject appointment');
   },
 
   // Doctor-Patient Direct Messaging

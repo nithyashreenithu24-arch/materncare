@@ -613,6 +613,118 @@ app.put('/api/messages/:patientId/read', (req, res) => {
 });
 
 // ----------------------------------------------------
+// APPOINTMENT MANAGEMENT
+// ----------------------------------------------------
+app.get('/api/appointments', (req, res) => {
+  const allAppointments: any[] = [];
+  for (const list of db.appointments.values()) {
+    allAppointments.push(...list);
+  }
+  // Sort by date descending
+  allAppointments.sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
+  res.json(allAppointments);
+});
+
+app.get('/api/appointments/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const user = db.users.get(userId);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  if (user.role === 'patient') {
+    res.json(db.appointments.get(userId) || []);
+  } else if (user.role === 'doctor') {
+    const docApts: any[] = [];
+    for (const list of db.appointments.values()) {
+      docApts.push(...list.filter(a => a.doctorId === userId));
+    }
+    res.json(docApts);
+  } else {
+    res.status(403).json({ error: 'Admins should use the global endpoint' });
+  }
+});
+
+app.post('/api/appointments/request', (req, res) => {
+  const { reason, type, scheduledDate } = req.body;
+  const currentUser = getCurrentUser(req);
+  if (!currentUser || currentUser.role !== 'patient') {
+    return res.status(403).json({ error: 'Only patients can request appointments' });
+  }
+
+  const doctorId = currentUser.assignedDoctorId || 'doc-1';
+  const doctor = db.users.get(doctorId);
+
+  const newAppointment = {
+    id: `apt-${Date.now()}`,
+    patientId: currentUser.id,
+    patientName: currentUser.name,
+    doctorId,
+    doctorName: doctor?.name || 'Assigned Physician',
+    requestDate: new Date().toISOString(),
+    scheduledDate: scheduledDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    reason: reason || 'Routine Prenatal Consultation',
+    status: 'pending' as const,
+    type: type || 'routine_checkup',
+  };
+
+  const existing = db.appointments.get(currentUser.id) || [];
+  existing.push(newAppointment);
+  db.appointments.set(currentUser.id, existing);
+
+  db.logAction(currentUser.id, 'APPOINTMENT_REQUEST', `Requested ${type} for ${newAppointment.scheduledDate}`);
+  db.save();
+
+  res.status(201).json(newAppointment);
+});
+
+app.put('/api/appointments/:id/approve', (req, res) => {
+  const aptId = req.params.id;
+  const admin = getCurrentUser(req);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Only admins can approve appointments' });
+  }
+
+  let found = false;
+  for (const [pid, list] of db.appointments.entries()) {
+    const idx = list.findIndex(a => a.id === aptId);
+    if (idx !== -1) {
+      list[idx].status = 'approved';
+      db.appointments.set(pid, list);
+      db.logAction(admin.id, 'APPOINTMENT_APPROVE', `Approved appointment ${aptId} for patient ${pid}`);
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) return res.status(404).json({ error: 'Appointment not found' });
+  db.save();
+  res.json({ success: true });
+});
+
+app.put('/api/appointments/:id/reject', (req, res) => {
+  const aptId = req.params.id;
+  const admin = getCurrentUser(req);
+  if (!admin || admin.role !== 'admin') {
+    return res.status(403).json({ error: 'Only admins can reject appointments' });
+  }
+
+  let found = false;
+  for (const [pid, list] of db.appointments.entries()) {
+    const idx = list.findIndex(a => a.id === aptId);
+    if (idx !== -1) {
+      list[idx].status = 'rejected';
+      db.appointments.set(pid, list);
+      db.logAction(admin.id, 'APPOINTMENT_REJECT', `Rejected appointment ${aptId} for patient ${pid}`);
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) return res.status(404).json({ error: 'Appointment not found' });
+  db.save();
+  res.json({ success: true });
+});
+
+// ----------------------------------------------------
 // HEALTH REPORTS DATA ENDPOINT
 // ----------------------------------------------------
 app.get('/api/reports/:userId', (req, res) => {

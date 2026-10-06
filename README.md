@@ -42,6 +42,14 @@ The application uses a strict **Role-Based Access Control (RBAC)** system. Unlik
 
 ## 4. Local Setup & VS Code Execution
 
+### Prerequisites
+- **Node.js (v20 or higher)**: [Download here](https://nodejs.org/)
+- **NPM (included with Node.js)**
+- **Git** (optional, for cloning)
+
+*Note: If you just installed Node.js, you may need to **restart VS Code** or your computer for the `npm` command to be recognized in your terminal.*
+
+### Setup Instructions
 To run this project in **VS Code**:
 
 1.  **Clone/Download** the repository to your local machine.
@@ -50,6 +58,7 @@ To run this project in **VS Code**:
     ```bash
     npm install
     ```
+    *If you get an error saying 'npm' is not recognized, please ensure Node.js is installed from the link above.*
 4.  **Environment Setup**: Create a `.env` file in the root directory (based on `.env.example`) and add your Gemini API Key:
     ```env
     GEMINI_API_KEY="your_google_gemini_api_key"

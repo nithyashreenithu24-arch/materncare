@@ -10,6 +10,7 @@ import {
   LogIn,
   LogOut,
   Sparkles,
+  Calendar,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -18,6 +19,7 @@ interface NavbarProps {
   onOpenReportModal: () => void;
   onToggleChat: () => void;
   onOpenCommunication?: () => void;
+  onOpenAppointmentPanel: () => void;
   onOpenAuthModal: () => void;
   onLogout: () => void;
   activeTab: 'patient' | 'doctor' | 'admin';
@@ -31,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenReportModal,
   onToggleChat,
   onOpenCommunication,
+  onOpenAppointmentPanel,
   onOpenAuthModal,
   onLogout,
   activeTab,
@@ -82,13 +85,23 @@ export const Navbar: React.FC<NavbarProps> = ({
           {currentUser?.role !== 'admin' && (
             <>
               {currentUser?.role === 'patient' && (
-                <button
-                  onClick={onOpenDataModal}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs"
-                >
-                  <PlusCircle className="w-4 h-4 text-rose-600" />
-                  <span>Record Vitals</span>
-                </button>
+                <>
+                  <button
+                    onClick={onOpenDataModal}
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs"
+                  >
+                    <PlusCircle className="w-4 h-4 text-rose-600" />
+                    <span>Record Vitals</span>
+                  </button>
+                  
+                  <button
+                    onClick={onOpenAppointmentPanel}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs"
+                  >
+                    <Calendar className="w-4 h-4 text-indigo-600" />
+                    <span className="hidden sm:inline">Book Appointment</span>
+                  </button>
+                </>
               )}
 
               <button
@@ -122,6 +135,26 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
 
           {/* User profile dropdown / login */}
+          {currentUser?.role === 'admin' && (
+             <button
+              onClick={onOpenAppointmentPanel}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition-colors shadow-2xs"
+            >
+              <Calendar className="w-4 h-4 text-amber-600" />
+              <span className="hidden sm:inline">Manage Appointments</span>
+            </button>
+          )}
+
+          {currentUser?.role === 'doctor' && (
+             <button
+              onClick={onOpenAppointmentPanel}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors shadow-2xs"
+            >
+              <Calendar className="w-4 h-4 text-indigo-600" />
+              <span className="hidden sm:inline">My Schedule</span>
+            </button>
+          )}
+
           {currentUser ? (
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
               <div className="hidden xl:block text-right">

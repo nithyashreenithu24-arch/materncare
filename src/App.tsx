@@ -11,6 +11,7 @@ import { ReportModal } from './components/ReportModal';
 import { ChatbotDrawer } from './components/ChatbotDrawer';
 import { AuthModal } from './components/AuthModal';
 import { CommunicationPanel } from './components/CommunicationPanel';
+import { AppointmentPanel } from './components/AppointmentPanel';
 import {
   Heart,
   ShieldCheck,
@@ -40,6 +41,7 @@ export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCommunicationOpen, setIsCommunicationOpen] = useState(false);
+  const [isAppointmentPanelOpen, setIsAppointmentPanelOpen] = useState(false);
   const [communicationTargetPatientId, setCommunicationTargetPatientId] = useState<string>('pat-1');
 
   // App notification
@@ -272,6 +274,7 @@ export default function App() {
           setCommunicationTargetPatientId(currentUser?.role === 'patient' ? currentUser.id : selectedDoctorPatientId);
           setIsCommunicationOpen(true);
         }}
+        onOpenAppointmentPanel={() => setIsAppointmentPanelOpen(true)}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onLogout={handleLogout}
         activeTab={activeTab}
@@ -386,6 +389,18 @@ export default function App() {
         currentUser={currentUser}
         predictions={predictions}
       />
+
+      {/* Appointment Registry Modal */}
+      {isAppointmentPanelOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl animate-in zoom-in-95 duration-200">
+            <AppointmentPanel
+              currentUser={currentUser}
+              onClose={() => setIsAppointmentPanelOpen(false)}
+            />
+          </div>
+        </div>
+      )}
 
       <AuthModal
         isOpen={isAuthModalOpen}

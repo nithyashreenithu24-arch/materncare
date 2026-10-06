@@ -81,9 +81,23 @@ export interface AuditLog {
   userId: string;
   userName: string;
   userRole: string;
-  action: 'LOGIN' | 'LOGOUT' | 'DATA_UPDATE' | 'PREDICTION_RUN' | 'NUTRITION_GENERATE' | 'REPORT_DOWNLOAD' | 'MODEL_RETRAIN' | 'ROLE_CHANGE' | 'REGISTER';
+  action: 'LOGIN' | 'LOGOUT' | 'DATA_UPDATE' | 'PREDICTION_RUN' | 'NUTRITION_GENERATE' | 'REPORT_DOWNLOAD' | 'MODEL_RETRAIN' | 'ROLE_CHANGE' | 'REGISTER' | 'APPOINTMENT_REQUEST' | 'APPOINTMENT_APPROVE' | 'APPOINTMENT_REJECT';
   details: string;
   ipAddress?: string;
+}
+
+export interface Appointment {
+  id: string;
+  patientId: string;
+  patientName: string;
+  doctorId: string;
+  doctorName: string;
+  requestDate: string;
+  scheduledDate: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled';
+  notes?: string;
+  type: 'routine_checkup' | 'gdm_followup' | 'cervical_screening' | 'emergency';
 }
 
 export interface ChatMessage {
@@ -131,6 +145,7 @@ class Database {
   doctorNotes: Map<string, DoctorNote[]> = new Map();
   chatHistories: Map<string, ChatMessage[]> = new Map();
   directMessages: Map<string, DirectMessage[]> = new Map(); // patientId -> DirectMessage array
+  appointments: Map<string, Appointment[]> = new Map(); // patientId -> Appointment array
   auditLogs: AuditLog[] = [];
 
   constructor() {
@@ -152,6 +167,7 @@ class Database {
         doctorNotes: Array.from(this.doctorNotes.entries()),
         chatHistories: Array.from(this.chatHistories.entries()),
         directMessages: Array.from(this.directMessages.entries()),
+        appointments: Array.from(this.appointments.entries()),
         auditLogs: this.auditLogs,
       };
       fs.writeFileSync(STORAGE_FILE, JSON.stringify(data, null, 2));
@@ -173,6 +189,7 @@ class Database {
         if (data.doctorNotes) this.doctorNotes = new Map(data.doctorNotes);
         if (data.chatHistories) this.chatHistories = new Map(data.chatHistories);
         if (data.directMessages) this.directMessages = new Map(data.directMessages);
+        if (data.appointments) this.appointments = new Map(data.appointments);
         if (data.auditLogs) this.auditLogs = data.auditLogs;
       }
     } catch (err) {
@@ -725,6 +742,37 @@ class Database {
         content: 'Sunita, please take a deep breath. Having positive HPV with LSIL indicates early surface cellular changes, NOT cancer. The majority of these changes are reversible or easily managed when detected early. I have scheduled a colposcopy review for you next Tuesday where we will examine the cervical surface under magnification. Please avoid douching or intercourse 48 hours prior.',
         tag: 'Lab Result',
         status: 'read',
+      },
+    ]);
+
+    // Seed Appointments
+    this.appointments.set(pat1Id, [
+      {
+        id: 'apt-1',
+        patientId: pat1Id,
+        patientName: 'Priya Patel',
+        doctorId: docId,
+        doctorName: 'Dr. Ananya Sharma',
+        requestDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        reason: '26-week routine growth scan and glucose review',
+        status: 'approved',
+        type: 'routine_checkup',
+      },
+    ]);
+
+    this.appointments.set('pat-2', [
+      {
+        id: 'apt-2',
+        patientId: 'pat-2',
+        patientName: 'Meera Krishnan',
+        doctorId: docId,
+        doctorName: 'Dr. Ananya Sharma',
+        requestDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        scheduledDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        reason: 'Follow-up for elevated fasting sugar readings',
+        status: 'pending',
+        type: 'gdm_followup',
       },
     ]);
   }

@@ -176,8 +176,22 @@ export interface AuditLog {
   userId: string;
   userName: string;
   userRole: string;
-  action: string;
+  action: 'LOGIN' | 'LOGOUT' | 'DATA_UPDATE' | 'PREDICTION_RUN' | 'NUTRITION_GENERATE' | 'REPORT_DOWNLOAD' | 'MODEL_RETRAIN' | 'ROLE_CHANGE' | 'REGISTER' | 'APPOINTMENT_REQUEST' | 'APPOINTMENT_APPROVE' | 'APPOINTMENT_REJECT';
   details: string;
+}
+
+export interface Appointment {
+  id: string;
+  patientId: string;
+  patientName: string;
+  doctorId: string;
+  doctorName: string;
+  requestDate: string;
+  scheduledDate: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled';
+  notes?: string;
+  type: 'routine_checkup' | 'gdm_followup' | 'cervical_screening' | 'emergency';
 }
 
 export interface DirectMessage {
