@@ -1,5 +1,5 @@
 {
-  "name": "MatraCare AI - Maternal Health Risk & Guidance Platform",
+  "name": "Matern.AI - Maternal Health Risk & Guidance Platform",
   "description": "Production-ready maternal health system for Cervical Cancer and Gestational Diabetes risk prediction, personalized nutrition, AI medical education chatbot, and role-based clinical dashboards.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

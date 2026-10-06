@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../types';
-import { X, Lock, Mail, User as UserIcon, Shield, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Lock, Mail, User as UserIcon, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -64,7 +64,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="bg-slate-900 p-6 text-white flex items-center justify-between">
           <div>
             <h3 className="font-extrabold text-base tracking-tight">
-              {isRegisterMode ? 'Create MatraCare Account' : 'Clinical Portal Sign In'}
+              {isRegisterMode ? 'Create Matern Account' : 'Clinical Portal Sign In'}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
               Secure JWT authenticated session with role-based access

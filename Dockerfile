@@ -1,4 +1,4 @@
-# Production Multi-Stage Dockerfile for MatraCare AI Platform
+# Production Multi-Stage Dockerfile for Matern AI Platform
 FROM node:20-alpine AS builder
 
 WORKDIR /app

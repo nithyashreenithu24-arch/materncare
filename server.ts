@@ -25,13 +25,12 @@ function getCurrentUser(req: express.Request): User | undefined {
     const token = authHeader.substring(7);
     return db.users.get(token);
   }
-  // Fallback to cookie / header
+  // Fallback to header
   const userIdHeader = req.headers['x-user-id'] as string;
   if (userIdHeader && db.users.has(userIdHeader)) {
     return db.users.get(userIdHeader);
   }
-  // Default to Priya Patel (patient) if not logged in
-  return db.users.get('pat-1');
+  return undefined;
 }
 
 // ----------------------------------------------------
@@ -68,7 +67,7 @@ app.post('/api/auth/register', (req, res) => {
   };
 
   db.users.set(newId, newUser);
-  db.logAction(newId, 'LOGIN', `Registered new ${role} account: ${email}`);
+  db.logAction(newId, 'REGISTER', `Registered new ${role} account: ${email}`);
 
   // Create baseline health record for patients
   if (role === 'patient') {
@@ -142,6 +141,7 @@ app.post('/api/auth/register', (req, res) => {
     );
   }
 
+  db.save();
   res.status(201).json({
     token: newId,
     user: newUser,
@@ -177,35 +177,11 @@ app.post('/api/auth/login', (req, res) => {
 app.get('/api/auth/me', (req, res) => {
   const user = getCurrentUser(req);
   if (!user) {
+    // If not authenticated, we could return 401, but for demo let's be careful
+    // However, the requested flow is "login to see dashboard", so 401 is correct
     return res.status(401).json({ error: 'Not authenticated' });
   }
   res.json({ user });
-});
-
-app.post('/api/auth/switch-demo', (req, res) => {
-  const { role = 'patient', targetId } = req.body;
-  let targetUser: User | undefined;
-  if (targetId && db.users.has(targetId)) {
-    targetUser = db.users.get(targetId);
-  } else {
-    // Select first user with role
-    for (const u of db.users.values()) {
-      if (u.role === role) {
-        targetUser = u;
-        break;
-      }
-    }
-  }
-
-  if (!targetUser) {
-    return res.status(404).json({ error: 'Demo user not found' });
-  }
-
-  db.logAction(targetUser.id, 'LOGIN', `Switched demo role to ${targetUser.role} (${targetUser.name})`);
-  res.json({
-    token: targetUser.id,
-    user: targetUser,
-  });
 });
 
 // ----------------------------------------------------
@@ -407,6 +383,7 @@ app.post('/api/health-records', (req, res) => {
   );
 
   db.logAction(patientId, 'DATA_UPDATE', `Logged health entry: BP ${newRecord.bloodPressureSys}/${newRecord.bloodPressureDia}, Sugar ${newRecord.postPrandialBloodSugar} mg/dL`);
+  db.save();
 
   res.status(201).json({
     record: newRecord,
@@ -482,6 +459,7 @@ app.post('/api/nutrition/generate', (req, res) => {
 
   db.nutritionPlans.set(targetId, plan);
   db.logAction(targetId, 'NUTRITION_GENERATE', `Regenerated 7-day personalized meal plan (${plan.dailyCalorieTarget} kcal/day)`);
+  db.save();
   res.json(plan);
 });
 
@@ -557,6 +535,7 @@ app.post('/api/chat', async (req, res) => {
     };
     history.push(botMsg);
     db.chatHistories.set(patientId, history);
+    db.save();
 
     res.json({ reply: botMsg, history });
   } catch (error: any) {
@@ -757,7 +736,7 @@ async function setupVite() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`MatraCare AI Platform running on http://localhost:${PORT}`);
+    console.log(`Matern AI Platform running on http://localhost:${PORT}`);
   });
 }
 

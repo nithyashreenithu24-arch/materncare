@@ -50,7 +50,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(16);
-      doc.text('MatraCare AI - Comprehensive Maternal Health Report', margin, 12);
+      doc.text('Matern AI - Comprehensive Maternal Health Report', margin, 12);
 
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
@@ -190,7 +190,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       doc.text('DISCLAIMER: This report is generated for informational monitoring purposes and must be reviewed by a qualified healthcare professional. Risk assessments reflect statistical probability models and do not constitute a definitive medical diagnosis.', margin, y, { maxWidth: 180 });
 
       // Save PDF
-      doc.save(`MatraCare_Health_Report_${patient.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      doc.save(`Matern_Health_Report_${patient.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (err) {
       console.error('Failed to generate PDF:', err);
     } finally {

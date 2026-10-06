@@ -1,4 +1,4 @@
-# MatraCare AI: Maternal Health Risk Prediction & Guidance Platform
+# Matern AI: Maternal Health Risk Prediction & Guidance Platform
 
 Production-ready web application for maternal health risk prediction, personalized nutrition recommendations, clinical decision support, and AI-powered patient education.
 
@@ -6,7 +6,7 @@ Production-ready web application for maternal health risk prediction, personaliz
 
 ## 1. System Overview & Architecture
 
-MatraCare AI bridges predictive machine learning with maternal-fetal clinical practice:
+Matern AI bridges predictive machine learning with maternal-fetal clinical practice:
 - **Gestational Diabetes Mellitus (GDM) Risk Estimator**: Statistical classifier trained on the PIMA Indian Diabetes cohort and antenatal glucose markers (Fasting blood sugar, 2h post-prandial glucose, pre-pregnancy BMI, maternal age, parity, family pedigree).
 - **Cervical Dysplasia / Neoplasia Risk Predictor**: Multi-factor model grounded in WHO & Cervical Risk Factor datasets (high-risk HPV DNA status, cytology history, smoking pack-years, sexual history, oral contraceptive duration, STDs).
 - **Personalized Nutrition Recommendation Engine**: Calculates daily caloric targets (BMR + trimester adjustments) and 7-day meal plans adhering to low-glycemic index (GI) and high-bioavailable iron protocols.
@@ -28,85 +28,75 @@ MatraCare AI bridges predictive machine learning with maternal-fetal clinical pr
 
 ---
 
-## 3. Pre-Seeded Clinical Profiles for Testing
+## 3. Getting Started & Role-Based Access
 
-The application includes an interactive **Demo Switcher Bar** at the top of the interface:
-1. **Priya Patel (Patient - Gestational Week 24)**: G2P1 with borderline elevated post-prandial glucose (142 mg/dL) and active nutrition plan.
-2. **Sunita Rao (Patient - Cervical Screening Focus)**: Referred after positive HPV 16 and low-grade squamous intraepithelial lesion (LSIL).
-3. **Dr. Ananya Sharma, MD (Doctor - Maternal-Fetal Medicine)**: Clinician dashboard reviewing patient cohorts, approving dietary protocols, and entering clinical notes.
-4. **Dr. Vikram Malhotra (Admin)**: System administrator supervising model accuracy, retraining pipelines, and user role assignments.
+The application uses a strict **Role-Based Access Control (RBAC)** system. Unlike early demos, there is no top-level demo switcher; users must register or sign in to access their specific dashboard.
+
+- **Registration**: New patients can register themselves to auto-provision a clinical profile.
+- **Pre-Seeded Accounts for Testing**:
+  - **Patient**: `patient@matern.org` (Password: `password123`)
+  - **Doctor**: `doctor@matern.org` (Password: `password123`)
+  - **Admin**: `admin@matern.org` (Password: `password123`)
 
 ---
 
-## 4. API Endpoints
+## 4. Local Setup & VS Code Execution
+
+To run this project in **VS Code**:
+
+1.  **Clone/Download** the repository to your local machine.
+2.  **Open Folder**: Open the project folder in VS Code.
+3.  **Install Dependencies**: Open a new terminal (`Ctrl+` `) and run:
+    ```bash
+    npm install
+    ```
+4.  **Environment Setup**: Create a `.env` file in the root directory (based on `.env.example`) and add your Gemini API Key:
+    ```env
+    GEMINI_API_KEY="your_google_gemini_api_key"
+    ```
+5.  **Run Development Server**:
+    ```bash
+    npm run dev
+    ```
+6.  **Access the App**: Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 5. Deployment (Production)
+
+### Docker Environment
+```bash
+docker-compose up --build -d
+```
+
+### Manual Build
+```bash
+npm run build
+npm run start
+```
+
+---
+
+## 6. API Endpoints
 
 ### Authentication
 - `POST /api/auth/register`: Create user (email, password, role)
 - `POST /api/auth/login`: Authenticate and receive session token
 - `GET /api/auth/me`: Retrieve current authenticated profile
-- `POST /api/auth/switch-demo`: Fast role switching for testing
 
 ### Patients & Clinical Records
 - `GET /api/patients`: List assigned patients with risk badges
-- `GET /api/patients/:id`: Retrieve patient drill-down with longitudinal records
-- `POST /api/patients/:id/notes`: Add clinical note and action items
-- `GET /api/health-records/:userId`: Fetch longitudinal vitals & lab data
+- `GET /api/patients/:id`: Retrieve patient drill-down
 - `POST /api/health-records`: Submit new vitals entry (triggers live model re-calculation)
 
-### AI Risk Predictions
-- `POST /api/predict/gestational-diabetes`: Calculate GDM probability and feature contributions
-- `POST /api/predict/cervical-cancer`: Calculate Cervical Cancer probability and feature contributions
+### AI Risk Predictions & Nutrition
 - `GET /api/predictions/:userId`: Retrieve latest saved risk predictions
-
-### Nutrition & Chat
-- `GET /api/nutrition/:userId`: Fetch 7-day personalized meal plan
-- `POST /api/nutrition/generate`: Regenerate meal plan based on dietary preference
-- `PUT /api/nutrition/:userId/approval`: Clinician approval or modification
-- `POST /api/chat`: Send query to MatraCare AI with patient context
-- `GET /api/chat/history/:userId`: Retrieve conversation history
-
-### Admin & MLOps
-- `GET /api/admin/stats`: Total users, query count, model versions
-- `GET /api/admin/users`: User management list
-- `PUT /api/admin/users/:id/role`: Update user role
-- `GET /api/admin/logs`: Access security audit logs
-- `GET /api/ml/metrics`: View model versions, ROC-AUC, precision, feature weights
-- `POST /api/ml/train`: Upload CSV or trigger retraining pipeline
+- `POST /api/nutrition/generate`: Regenerate 7-day meal plan
+- `POST /api/chat`: Send query to Matern AI Guide (Powered by `gemini-1.5-flash`)
 
 ---
 
-## 5. Local Setup & Execution
-
-### Prerequisites
-- Node.js 20+ installed
-- NPM 10+
-
-### Installation
-```bash
-npm install
-```
-
-### Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-GEMINI_API_KEY="your_api_key_here"
-PORT=3000
-```
-
-### Running Locally
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Building & Running Production Container
-```bash
-docker-compose up --build -d
-```
-
----
-
-## 6. Clinical & Regulatory Disclaimers
+## 7. Clinical & Regulatory Disclaimers
 
 1. **Educational & Decision-Support Only**: All predictions, recommendations, and chatbot outputs are for educational risk stratification and must be confirmed by a licensed medical practitioner.
 2. **Guideline Alignment**: Incorporates standard thresholds from the World Health Organization (WHO), American College of Obstetricians and Gynecologists (ACOG), and Federation of Obstetric & Gynaecological Societies of India (FOGSI).

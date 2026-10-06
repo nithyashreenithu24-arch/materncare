@@ -1,5 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import { predictGestationalDiabetes, predictCervicalCancer, PredictionResult } from './ml_engine.js';
 import { generatePersonalizedNutritionPlan, NutritionPlan } from './nutrition_engine.js';
+
+const STORAGE_FILE = path.join(process.cwd(), 'data', 'clinical_registry.json');
 
 export interface SupplementAdherence {
   ironFolicAcid: boolean;
@@ -77,7 +81,7 @@ export interface AuditLog {
   userId: string;
   userName: string;
   userRole: string;
-  action: 'LOGIN' | 'LOGOUT' | 'DATA_UPDATE' | 'PREDICTION_RUN' | 'NUTRITION_GENERATE' | 'REPORT_DOWNLOAD' | 'MODEL_RETRAIN' | 'ROLE_CHANGE';
+  action: 'LOGIN' | 'LOGOUT' | 'DATA_UPDATE' | 'PREDICTION_RUN' | 'NUTRITION_GENERATE' | 'REPORT_DOWNLOAD' | 'MODEL_RETRAIN' | 'ROLE_CHANGE' | 'REGISTER';
   details: string;
   ipAddress?: string;
 }
@@ -131,6 +135,53 @@ class Database {
 
   constructor() {
     this.seedInitialData();
+    this.loadFromStorage();
+  }
+
+  private saveToStorage() {
+    try {
+      const dataDir = path.dirname(STORAGE_FILE);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      const data = {
+        users: Array.from(this.users.entries()),
+        healthRecords: Array.from(this.healthRecords.entries()),
+        predictions: Array.from(this.predictions.entries()),
+        nutritionPlans: Array.from(this.nutritionPlans.entries()),
+        doctorNotes: Array.from(this.doctorNotes.entries()),
+        chatHistories: Array.from(this.chatHistories.entries()),
+        directMessages: Array.from(this.directMessages.entries()),
+        auditLogs: this.auditLogs,
+      };
+      fs.writeFileSync(STORAGE_FILE, JSON.stringify(data, null, 2));
+    } catch (err) {
+      console.error('Failed to save to permanent storage:', err);
+    }
+  }
+
+  private loadFromStorage() {
+    try {
+      if (fs.existsSync(STORAGE_FILE)) {
+        const raw = fs.readFileSync(STORAGE_FILE, 'utf-8');
+        const data = JSON.parse(raw);
+        
+        if (data.users) this.users = new Map(data.users);
+        if (data.healthRecords) this.healthRecords = new Map(data.healthRecords);
+        if (data.predictions) this.predictions = new Map(data.predictions);
+        if (data.nutritionPlans) this.nutritionPlans = new Map(data.nutritionPlans);
+        if (data.doctorNotes) this.doctorNotes = new Map(data.doctorNotes);
+        if (data.chatHistories) this.chatHistories = new Map(data.chatHistories);
+        if (data.directMessages) this.directMessages = new Map(data.directMessages);
+        if (data.auditLogs) this.auditLogs = data.auditLogs;
+      }
+    } catch (err) {
+      console.error('Failed to load from permanent storage:', err);
+    }
+  }
+
+  public save() {
+    this.saveToStorage();
   }
 
   seedInitialData() {
@@ -139,7 +190,7 @@ class Database {
     this.users.set(docId, {
       id: docId,
       name: 'Dr. Ananya Sharma, MD',
-      email: 'doctor@matracare.org',
+      email: 'doctor@matern.org',
       role: 'doctor',
       phone: '+91 98201 54321',
       specialty: 'Maternal-Fetal Medicine & Obstetrics',
@@ -152,7 +203,7 @@ class Database {
     this.users.set(doc2Id, {
       id: doc2Id,
       name: 'Dr. Rajesh Varma, MD, DGO',
-      email: 'rajesh.varma@matracare.org',
+      email: 'rajesh.varma@matern.org',
       role: 'doctor',
       phone: '+91 98112 34567',
       specialty: 'Gynecologic Oncology & Preventive Colposcopy',
@@ -165,7 +216,7 @@ class Database {
     this.users.set(adminId, {
       id: adminId,
       name: 'Dr. Vikram Malhotra (Clinical Admin)',
-      email: 'admin@matracare.org',
+      email: 'admin@matern.org',
       role: 'admin',
       phone: '+91 99100 87654',
       clinicLocation: 'National Maternal Registry HQ',
@@ -177,7 +228,7 @@ class Database {
     this.users.set(pat1Id, {
       id: pat1Id,
       name: 'Priya Patel',
-      email: 'patient@matracare.org',
+      email: 'patient@matern.org',
       role: 'patient',
       phone: '+91 97123 45678',
       assignedDoctorId: docId,
@@ -585,7 +636,7 @@ class Database {
       {
         id: 'm1',
         sender: 'assistant',
-        content: 'Namaste Priya! I am your MatraCare Health Companion. I can provide evidence-based educational guidance regarding gestational diabetes, prenatal nutrition, cervical screening, and your test results. What would you like to explore today?',
+        content: 'Namaste Priya! I am your Matern Health Companion. I can provide evidence-based educational guidance regarding gestational diabetes, prenatal nutrition, cervical screening, and your test results. What would you like to explore today?',
         timestamp: new Date(Date.now() - 1800000).toISOString(),
       },
     ]);
@@ -693,6 +744,7 @@ class Database {
     if (this.auditLogs.length > 500) {
       this.auditLogs.pop();
     }
+    this.saveToStorage();
   }
 }
 

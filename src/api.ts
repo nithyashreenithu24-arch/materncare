@@ -4,7 +4,7 @@ const getHeaders = (token?: string) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  const activeToken = token || localStorage.getItem('matracare_token') || 'pat-1';
+  const activeToken = token || localStorage.getItem('matern_token');
   if (activeToken) {
     headers['Authorization'] = `Bearer ${activeToken}`;
     headers['x-user-id'] = activeToken;
@@ -43,16 +43,6 @@ export const api = {
       const err = await res.json();
       throw new Error(err.error || 'Failed to register');
     }
-    return res.json();
-  },
-
-  async switchDemo(role: 'patient' | 'doctor' | 'admin', targetId?: string): Promise<{ token: string; user: User }> {
-    const res = await fetch('/api/auth/switch-demo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role, targetId }),
-    });
-    if (!res.ok) throw new Error('Failed to switch demo user');
     return res.json();
   },
 

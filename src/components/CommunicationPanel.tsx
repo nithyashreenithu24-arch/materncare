@@ -69,11 +69,30 @@ export const CommunicationPanel: React.FC<CommunicationPanelProps> = ({
   };
 
   useEffect(() => {
-    loadMessages();
-    const interval = setInterval(() => {
-      api.getDirectMessages(patientId).then((msgs) => setMessages(msgs)).catch(() => {});
-    }, 4000);
-    return () => clearInterval(interval);
+    setIsLoading(true);
+    // Initial fetch and mark as read
+    api.getDirectMessages(patientId).then(msgs => {
+      setMessages(msgs);
+      setIsLoading(false);
+      api.markMessagesRead(patientId);
+    }).catch(err => {
+      console.error('Initial load failed:', err);
+      setIsLoading(false);
+    });
+
+    // Polling for updates every 10 seconds (as Firebase/WebSockets are not used)
+    const pollInterval = setInterval(async () => {
+      try {
+        const msgs = await api.getDirectMessages(patientId);
+        setMessages(msgs);
+        // Only mark read if messages changed? 
+        // For simplicity, just poll and update state
+      } catch (err) {
+        console.error('Polling messages failed:', err);
+      }
+    }, 10000);
+
+    return () => clearInterval(pollInterval);
   }, [patientId]);
 
   useEffect(() => {

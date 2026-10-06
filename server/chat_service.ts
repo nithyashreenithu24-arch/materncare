@@ -2,8 +2,18 @@ import { GoogleGenAI } from '@google/genai';
 
 // Initialize Gemini SDK with process.env.GEMINI_API_KEY
 const getGenAI = () => {
+  if (!process.env.GEMINI_API_KEY) {
+    return null;
+  }
   try {
-    return new GoogleGenAI();
+    return new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
   } catch (err) {
     console.warn('Could not initialize GoogleGenAI client:', err);
     return null;
@@ -11,7 +21,7 @@ const getGenAI = () => {
 };
 
 const SYSTEM_INSTRUCTION = `
-You are MatraCare AI, a compassionate, maternal-fetal health educational assistant grounded in WHO, ACOG (American College of Obstetricians and Gynecologists), and FOGSI guidelines.
+You are Matern AI, a compassionate, maternal-fetal health educational assistant grounded in WHO, ACOG (American College of Obstetricians and Gynecologists), and FOGSI guidelines.
 
 Your mission:
 1. Explain maternal health risks (Gestational Diabetes Mellitus and Cervical Cancer Screening/HPV) in clear, empathetic, easy-to-understand language.
@@ -57,7 +67,7 @@ export async function generateChatResponse(params: {
   }
 
   const ai = getGenAI();
-  if (ai && process.env.GEMINI_API_KEY) {
+  if (ai) {
     try {
       const messagesFormatted = conversationHistory.slice(-4).map((msg) => ({
         role: msg.sender === 'user' ? 'user' : 'model',
@@ -68,7 +78,7 @@ export async function generateChatResponse(params: {
       const fullUserPrompt = `${contextSnippet}\nUser Question: ${userMessage}`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-1.5-flash',
         contents: [
           ...messagesFormatted,
           {
@@ -79,7 +89,6 @@ export async function generateChatResponse(params: {
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
           temperature: 0.4,
-          maxOutputTokens: 900,
         },
       });
 
@@ -149,7 +158,7 @@ Nutritional choices during pregnancy directly support maternal placental perfusi
 ℹ️ **Educational Disclaimer:** This information is for educational guidance only and is not a substitute for professional clinical diagnosis or medical treatment. Please consult your healthcare provider for personalized medical decisions.`;
   }
 
-  return `### MatraCare Maternal Health Guidance
+  return `### Matern Maternal Health Guidance
 
 Thank you for your question. Maintaining proactive maternal health through regular antenatal checkups, routine screening, and personalized nutrition is the safest way to ensure a healthy pregnancy.
 

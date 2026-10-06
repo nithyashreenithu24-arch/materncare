@@ -50,7 +50,7 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
           {
             id: 'init-1',
             sender: 'assistant',
-            content: `Namaste ${currentUser.name}! I am your MatraCare Health Companion. I can provide evidence-based educational guidance regarding gestational diabetes, prenatal nutrition, cervical screening, and your test results. What would you like to explore today?`,
+            content: `Namaste ${currentUser.name}! I am your Matern Health Companion. I can provide evidence-based educational guidance regarding gestational diabetes, prenatal nutrition, cervical screening, and your test results. What would you like to explore today?`,
             timestamp: new Date().toISOString(),
           },
         ]);
@@ -117,7 +117,7 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h3 className="font-bold text-sm tracking-tight">MatraCare AI Assistant</h3>
+              <h3 className="font-bold text-sm tracking-tight">Matern AI Assistant</h3>
               <span className="text-[10px] bg-emerald-400/20 text-emerald-200 px-1.5 py-0.2 rounded font-medium border border-emerald-400/30">
                 Online
               </span>
@@ -178,7 +178,7 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
         {isLoading && (
           <div className="flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50/60 p-3 rounded-2xl border border-indigo-100 w-fit">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-            <span>MatraCare AI is consulting medical guidelines...</span>
+            <span>Matern AI is consulting medical guidelines...</span>
           </div>
         )}
         <div ref={messagesEndRef} />

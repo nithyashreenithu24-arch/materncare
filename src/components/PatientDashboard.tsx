@@ -15,11 +15,11 @@ import {
   Sparkles,
   Stethoscope,
   ChevronRight,
-  TrendingUp,
   Pill,
   Bell,
   ShieldCheck,
   Shield,
+  Circle,
 } from 'lucide-react';
 
 interface PatientDashboardProps {
@@ -49,536 +49,398 @@ export const PatientDashboard: React.FC<PatientDashboardProps> = ({
 }) => {
   const latestRecord = records[records.length - 1];
 
-  // Prep glucose chart data
   const glucoseChartData = records.map((r, i) => ({
-    label: r.gestationalWeeks ? `Wk ${r.gestationalWeeks}` : `Entry ${i + 1}`,
+    label: r.gestationalWeeks ? `Wk ${r.gestationalWeeks}` : `T+${i}`,
     value: r.postPrandialBloodSugar,
     secondaryValue: r.fastingBloodSugar,
   }));
 
-  // Prep blood pressure chart data
   const bpChartData = records.map((r, i) => ({
-    label: r.gestationalWeeks ? `Wk ${r.gestationalWeeks}` : `Entry ${i + 1}`,
+    label: r.gestationalWeeks ? `Wk ${r.gestationalWeeks}` : `T+${i}`,
     value: r.bloodPressureSys,
     secondaryValue: r.bloodPressureDia,
   }));
 
   return (
-    <div className="space-y-6">
-      {/* Patient Welcome Banner */}
-      <div className="bg-gradient-to-r from-rose-500 via-pink-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-rose-500/10">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold uppercase tracking-wider text-rose-100">
-                {latestRecord?.gestationalWeeks ? `Gestational Week ${latestRecord.gestationalWeeks}` : 'Maternal Health Profile'}
-              </span>
-              <span className="text-xs text-rose-100/90 font-medium">Gravida {latestRecord?.gravidity || 1}, Para {latestRecord?.parity || 0}</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Welcome back, {patient.name}
-            </h1>
-            <p className="text-xs sm:text-sm text-rose-100/90 max-w-2xl leading-relaxed">
-              Continuous AI-assisted monitoring for gestational diabetes and cervical wellness. Your individualized nutrition and screening plan are active.
-            </p>
+    <div className="space-y-12">
+      {/* 1. VIEWPORT HERO & MISSION CONTEXT */}
+      <section className="relative overflow-hidden rounded-[2rem] bg-slate-900 text-white shadow-2xl">
+        {/* Background Image with Scrim */}
+        <div className="absolute inset-0 opacity-40">
+           <img 
+            src="/src/assets/images/healthcare_biotech_hero_1791214862368.jpg" 
+            className="w-full h-full object-cover" 
+            alt="Clinical Laboratory"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent" />
+        </div>
+
+        <div className="relative p-8 md:p-12 space-y-6">
+          <div className="flex items-center gap-3 text-[10px] font-mono tracking-[0.3em] uppercase opacity-70">
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Active Monitoring
+            </span>
+            <span className="opacity-30">|</span>
+            <span>Ref: {patient.id}</span>
+            <span className="opacity-30">|</span>
+            <span>{latestRecord?.gestationalWeeks ? `Week ${latestRecord.gestationalWeeks}` : 'Baseline'}</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={onOpenDataModal}
-              className="px-4 py-2.5 rounded-xl bg-white text-rose-700 hover:bg-rose-50 font-bold text-xs shadow-md transition-all flex items-center gap-2"
-            >
-              <Activity className="w-4 h-4 text-rose-600" />
-              <span>Log Today&apos;s Vitals</span>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight max-w-2xl text-wrap-balance">
+            Welcome back, {patient.name.split(' ')[0]}.
+          </h1>
+          
+          <p className="text-slate-300 text-sm md:text-lg max-w-xl leading-relaxed opacity-90">
+            Continuous clinical telemetry synchronized. Your predictive risk vectors for GDM and Cervical Health are updated to the latest sampling.
+          </p>
+
+          <div className="flex flex-wrap gap-4 pt-4">
+            <button onClick={onOpenDataModal} className="px-6 py-3 bg-white text-slate-900 rounded-xl font-bold text-xs hover:bg-indigo-50 transition-all flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Capture New Sample
             </button>
-            <button
-              onClick={onOpenReportModal}
-              className="px-4 py-2.5 rounded-xl bg-black/20 hover:bg-black/30 backdrop-blur-md text-white font-semibold text-xs border border-white/20 transition-all flex items-center gap-2"
-            >
+            <button onClick={onOpenReportModal} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs hover:bg-slate-700 border border-white/10 transition-all flex items-center gap-2">
               <FileDown className="w-4 h-4" />
-              <span>Download Health Report</span>
+              Export Dossier
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Primary Risk Prediction Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* GDM Prediction */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
+      {/* 2. PRIMARY ANALYTIC STAGE (GDM & CERVICAL) */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="panel-precision p-8 rounded-3xl flex flex-col justify-between group">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                  <Droplets className="w-5 h-5" />
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Droplets className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Gestational Diabetes Risk</h3>
-                  <p className="text-xs text-slate-500">PIMA &amp; Antenatal Metabolic Model</p>
+                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">GDM Analytics</h3>
+                  <p className="text-lg font-bold text-slate-900 tracking-tight">Gestational Diabetes Mellitus</p>
                 </div>
               </div>
-              <span className="text-[11px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                {predictions?.gdm.modelVersion || 'v1.2.4'}
-              </span>
+              <div className="text-right">
+                <span className="text-[10px] font-mono text-slate-400 block uppercase">Model Version</span>
+                <span className="text-xs font-bold text-slate-900">{predictions?.gdm.modelVersion || 'v1.2.4'}</span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <RiskGauge
                 score={predictions?.gdm.scorePercentage || 25}
                 category={predictions?.gdm.riskCategory || 'Low'}
-                title="GDM Probability"
-                subtitle="Based on blood glucose, pre-pregnancy BMI &amp; parity"
-                size={170}
+                title="Gestational Diabetes"
+                size={180}
               />
-              <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Clinical Directive</p>
-                  <p className="text-xs text-slate-700 leading-snug">
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Clinical Directive</span>
+                  <p className="text-sm text-slate-700 leading-relaxed font-medium">
                     {predictions?.gdm.clinicalAction || 'Routine prenatal surveillance. Target fasting glucose ≤ 95 mg/dL.'}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-600">
-                  <Clock className="w-4 h-4 text-indigo-500 shrink-0" />
-                  <span>Next glucose screening due in: <strong>{predictions?.gdm.recommendedFollowUpDays || 28} days</strong></span>
+                <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[10px] font-mono text-slate-500">
+                    <Clock className="w-3 h-3" />
+                    <span>Next Review: T+{predictions?.gdm.recommendedFollowUpDays || 28}D</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="mt-4 pt-4 border-t border-slate-100">
+          <div className="mt-12">
             {predictions?.gdm.topFactors && (
               <FeatureContributionList
                 factors={predictions.gdm.topFactors.slice(0, 3)}
-                title="Primary Factors Affecting Your GDM Score"
+                title="Telemetry Vectors"
               />
             )}
           </div>
         </div>
 
-        {/* Cervical Cancer Risk */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="panel-precision p-8 rounded-3xl flex flex-col justify-between group">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-                  <Heart className="w-5 h-5" />
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <Heart className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Cervical Health &amp; Dysplasia Risk</h3>
-                  <p className="text-xs text-slate-500">WHO &amp; HPV Stratified Predictive Tree</p>
+                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Oncology Screening</h3>
+                  <p className="text-lg font-bold text-slate-900 tracking-tight">Cervical Cytology Analysis</p>
                 </div>
               </div>
-              <span className="text-[11px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                {predictions?.cervical.modelVersion || 'v1.1.8'}
-              </span>
+              <div className="text-right">
+                <span className="text-[10px] font-mono text-slate-400 block uppercase">Model Version</span>
+                <span className="text-xs font-bold text-slate-900">{predictions?.cervical.modelVersion || 'v1.1.8'}</span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <RiskGauge
                 score={predictions?.cervical.scorePercentage || 12}
                 category={predictions?.cervical.riskCategory || 'Low'}
-                title="Cervical Risk Index"
-                subtitle="Calculated from HPV status, cytology &amp; lifestyle factors"
-                size={170}
+                title="Cervical Neoplasia"
+                size={180}
               />
-              <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Clinical Protocol</p>
-                  <p className="text-xs text-slate-700 leading-snug">
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Protocol Strategy</span>
+                  <p className="text-sm text-slate-700 leading-relaxed font-medium">
                     {predictions?.cervical.clinicalAction || 'Continue routine 3-year Pap/HPV screening.'}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-600">
-                  <Clock className="w-4 h-4 text-rose-500 shrink-0" />
-                  <span>Next screening review in: <strong>{predictions?.cervical.recommendedFollowUpDays || 365} days</strong></span>
+                <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[10px] font-mono text-slate-500">
+                    <Calendar className="w-3 h-3" />
+                    <span>Interval: 12 Months</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="mt-4 pt-4 border-t border-slate-100">
+          <div className="mt-12">
             {predictions?.cervical.topFactors && (
               <FeatureContributionList
                 factors={predictions.cervical.topFactors.slice(0, 3)}
-                title="Key Cervical Markers Explained"
+                title="Screening Parameters"
               />
             )}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Key Maternal Vitals Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Blood Pressure</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xl font-extrabold text-slate-900">
-              {latestRecord?.bloodPressureSys || 120}/{latestRecord?.bloodPressureDia || 80}
-            </span>
-            <span className="text-[10px] text-slate-400">mmHg</span>
+      {/* 3. PRECISION METRIC STRIP */}
+      <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {[
+          { label: 'Blood Pressure', value: `${latestRecord?.bloodPressureSys || 120}/${latestRecord?.bloodPressureDia || 80}`, unit: 'mmHg', status: 'nominal', statusLabel: 'Nominal' },
+          { label: 'Post-Meal Sugar', value: latestRecord?.postPrandialBloodSugar || 118, unit: 'mg/dL', status: (latestRecord?.postPrandialBloodSugar || 0) > 140 ? 'critical' : 'nominal', statusLabel: (latestRecord?.postPrandialBloodSugar || 0) > 140 ? 'Elevated' : 'Stable' },
+          { label: 'Fasting Sugar', value: latestRecord?.fastingBloodSugar || 90, unit: 'mg/dL', status: 'nominal', statusLabel: 'Verified' },
+          { label: 'Hemoglobin', value: latestRecord?.hemoglobin || 11.2, unit: 'g/dL', status: (latestRecord?.hemoglobin || 0) < 11.0 ? 'drifting' : 'nominal', statusLabel: (latestRecord?.hemoglobin || 0) < 11.0 ? 'Low' : 'Normal' },
+          { label: 'Maternal BMI', value: latestRecord?.bmi || 24.5, unit: 'kg/m²', status: 'nominal', statusLabel: 'In Spec' },
+          { label: 'HPV Status', value: latestRecord?.hpvStatus ? latestRecord.hpvStatus.replace('_', ' ') : 'Negative', unit: '', status: 'nominal', statusLabel: 'Detected' },
+        ].map((metric, i) => (
+          <div key={i} className="panel-precision p-5 rounded-2xl flex flex-col gap-3">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{metric.label}</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold metric-readout text-slate-900">{metric.value}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase">{metric.unit}</span>
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
+              <span className={`status-dot status-${metric.status}`} />
+              <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-tighter">{metric.statusLabel}</span>
+            </div>
           </div>
-          <span className="inline-block mt-2 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-            Optimal Range
-          </span>
-        </div>
+        ))}
+      </section>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Post-Meal Sugar</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xl font-extrabold text-slate-900">
-              {latestRecord?.postPrandialBloodSugar || 118}
-            </span>
-            <span className="text-[10px] text-slate-400">mg/dL</span>
-          </div>
-          <span
-            className={`inline-block mt-2 text-[10px] font-semibold px-2 py-0.5 rounded ${
-              (latestRecord?.postPrandialBloodSugar || 0) > 140
-                ? 'text-rose-700 bg-rose-50'
-                : (latestRecord?.postPrandialBloodSugar || 0) > 120
-                ? 'text-amber-700 bg-amber-50'
-                : 'text-emerald-700 bg-emerald-50'
-            }`}
-          >
-            {(latestRecord?.postPrandialBloodSugar || 0) > 140 ? 'Elevated' : (latestRecord?.postPrandialBloodSugar || 0) > 120 ? 'Borderline' : 'Normal'}
-          </span>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Fasting Sugar</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xl font-extrabold text-slate-900">
-              {latestRecord?.fastingBloodSugar || 90}
-            </span>
-            <span className="text-[10px] text-slate-400">mg/dL</span>
-          </div>
-          <span className="inline-block mt-2 text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-            Target ≤ 95
-          </span>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Hemoglobin</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xl font-extrabold text-slate-900">
-              {latestRecord?.hemoglobin || 11.2}
-            </span>
-            <span className="text-[10px] text-slate-400">g/dL</span>
-          </div>
-          <span
-            className={`inline-block mt-2 text-[10px] font-semibold px-2 py-0.5 rounded ${
-              (latestRecord?.hemoglobin || 0) < 11.0 ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'
-            }`}
-          >
-            {(latestRecord?.hemoglobin || 0) < 11.0 ? 'Mild Anemia' : 'Normal'}
-          </span>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Maternal BMI</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xl font-extrabold text-slate-900">
-              {latestRecord?.bmi || 24.5}
-            </span>
-            <span className="text-[10px] text-slate-400">kg/m²</span>
-          </div>
-          <span className="inline-block mt-2 text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-            Weight: {latestRecord?.weightKg || 60} kg
-          </span>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pap / HPV Status</span>
-          <div className="mt-1">
-            <p className="text-xs font-bold text-slate-900 capitalize">
-              {latestRecord?.hpvStatus ? latestRecord.hpvStatus.replace('_', ' ') : 'Negative'}
-            </p>
-          </div>
-          <span className="inline-block mt-2 text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">
-            Cytology: {latestRecord?.papSmearHistory === 'abnormal_recent' ? 'Review Needed' : 'Normal'}
-          </span>
-        </div>
-      </div>
-
-      {/* Prenatal Supplement Adherence & Active Profile Reminders Card */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-              <Pill className="w-4 h-4" />
+      {/* 4. CLINICAL NUTRITION (DAILY MEAL PLAN) */}
+      <section className="panel-precision p-8 rounded-[2rem] space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <Utensils className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span>Daily Prenatal Supplement Adherence</span>
-                <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.2 rounded-full font-semibold">
-                  {latestRecord?.supplementAdherence?.adherenceRating || 'Full'} Adherence
-                </span>
-              </h3>
-              <p className="text-[11px] text-slate-500">WHO &amp; FOGSI standard maternal micro-nutrient routine</p>
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Today's Protocol</h3>
+              <p className="text-lg font-bold text-slate-900 tracking-tight">Precision Clinical Nutrition</p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            {patient.supplementReminderEnabled ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-200">
-                <Bell className="w-3.5 h-3.5 text-indigo-600 animate-bounce" />
-                <span>Daily Reminder: {patient.supplementReminderTime || '09:00 AM'}</span>
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium">
-                <Bell className="w-3.5 h-3.5 text-slate-400" />
-                <span>Reminders Muted</span>
-              </span>
-            )}
-
-            <button
-              onClick={onOpenDataModal}
-              className="text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-3 py-1 rounded-xl border border-rose-200 transition-colors"
-            >
-              Update Log &amp; Reminders
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              <span className="text-[10px] font-mono text-slate-400 block uppercase">Calorie Target</span>
+              <span className="text-xs font-bold text-emerald-700">{nutritionPlan?.dailyCalorieTarget || 1800} kcal/day</span>
+            </div>
+            <button onClick={onOpenNutritionModal} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-[11px] font-bold hover:bg-emerald-100 transition-colors border border-emerald-200 flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5" />
+              Full 7-Day Plan
             </button>
           </div>
         </div>
 
-        {/* 4 Core Prenatal Supplement Badges */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3.5">
-          <div className="p-3 rounded-2xl bg-slate-50/70 border border-slate-200/80 flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-xs text-slate-800">Iron &amp; Folic Acid</p>
-              <p className="text-[10px] text-slate-500">60mg Fe + 400mcg Folate</p>
-              <span className="inline-block mt-1 text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
-                Taken Today
-              </span>
+        {nutritionPlan ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[
+              { label: 'Breakfast', time: '08:00', meal: nutritionPlan.sevenDayMealPlan[0].breakfast },
+              { label: 'Morning Snack', time: '11:00', meal: nutritionPlan.sevenDayMealPlan[0].morningSnack },
+              { label: 'Lunch', time: '13:30', meal: nutritionPlan.sevenDayMealPlan[0].lunch },
+              { label: 'Evening Snack', time: '17:00', meal: nutritionPlan.sevenDayMealPlan[0].eveningSnack },
+              { label: 'Dinner', time: '19:30', meal: nutritionPlan.sevenDayMealPlan[0].dinner },
+              { label: 'Bedtime', time: '21:30', meal: nutritionPlan.sevenDayMealPlan[0].bedtimeSnack },
+            ].map((slot, i) => (
+              <div key={i} className="bg-slate-50/50 border border-slate-100 p-4 rounded-2xl space-y-2 group hover:bg-white hover:shadow-md transition-all duration-300">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{slot.label}</span>
+                  <span className="text-[9px] font-mono text-slate-400">{slot.time}</span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[11px] font-bold text-slate-900 leading-tight line-clamp-2 min-h-[2rem]">
+                    {slot.meal?.name || 'Standard Protocol'}
+                  </p>
+                  <p className="text-[9px] text-slate-500 italic">
+                    {slot.meal?.portion || 'Controlled portion'}
+                  </p>
+                </div>
+                <div className="pt-2 flex items-center justify-between">
+                  <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase">
+                    {slot.meal?.calories || 150} kcal
+                  </span>
+                  <Sparkles className="w-3 h-3 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <p className="text-xs text-slate-400 font-medium italic">Regenerating nutritional vectors based on latest vitals...</p>
+          </div>
+        )}
+      </section>
+
+      {/* 5. REALTIME COMMUNICATION & ADHERENCE */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 panel-precision p-8 rounded-3xl space-y-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Direct Consultation Channel</h3>
+                <p className="text-xs text-slate-500 font-medium">Dr. Ananya Sharma, MD · End-to-End Encrypted</p>
+              </div>
             </div>
+            <button onClick={onOpenCommunication} className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-[11px] font-bold hover:bg-indigo-100 transition-colors border border-indigo-200">
+              Initiate Secure Session
+            </button>
           </div>
 
-          <div className="p-3 rounded-2xl bg-slate-50/70 border border-slate-200/80 flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-xs text-slate-800">Calcium &amp; Vit D3</p>
-              <p className="text-[10px] text-slate-500">500mg (2h after Iron)</p>
-              <span className="inline-block mt-1 text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
-                Taken Today
-              </span>
+          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-center gap-6">
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-2 text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
+                <span className="status-dot status-nominal animate-pulse" />
+                Latest Physician Directive
+              </div>
+              <p className="text-sm text-slate-700 leading-relaxed italic">
+                &ldquo;Your fasting values are within the calibration range. Continue current nutrition protocols. Next scheduled biometric capture in 48 hours.&rdquo;
+              </p>
             </div>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-slate-50/70 border border-slate-200/80 flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-xs text-slate-800">Prenatal Multivitamin</p>
-              <p className="text-[10px] text-slate-500">Zinc, Iodine, B-Complex</p>
-              <span className="inline-block mt-1 text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
-                Taken Today
-              </span>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-slate-50/70 border border-slate-200/80 flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-xs text-slate-800">Omega-3 / DHA</p>
-              <p className="text-[10px] text-slate-500">200mg Fetal Brain DHA</p>
-              <span className="inline-block mt-1 text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
-                Taken Today
-              </span>
+            <div className="w-full md:w-auto flex flex-col gap-2">
+               <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                <Shield className="w-3 h-3" />
+                Verified Thread
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                <Clock className="w-3 h-3" />
+                Latency: 0.4s
+              </div>
             </div>
           </div>
         </div>
 
-        {patient.supplementReminderEnabled && (
-          <div className="mt-3 flex items-center justify-between text-[11px] text-indigo-700 bg-indigo-50/60 px-3 py-1.5 rounded-xl border border-indigo-100">
-            <span className="flex items-center gap-1.5 font-medium">
-              <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-              Reminder preference saved to your profile: Daily notifications active at {patient.supplementReminderTime || '09:00 AM'}.
-            </span>
-            <span className="text-[10px] text-indigo-500 hidden sm:inline">Profile Synced</span>
+        <div className="panel-precision p-8 rounded-3xl space-y-8">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center">
+              <Pill className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 tracking-tight">Micronutrient Adherence</h3>
+              <p className="text-xs text-slate-500 font-medium">WHO Standard Protocols</p>
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Longitudinal Trend Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            {[
+              { name: 'IFA (Iron + Folic Acid)', scheduled: '09:00', status: 'Completed' },
+              { name: 'Calcium + Vit D3', scheduled: '14:00', status: 'Completed' },
+              { name: 'Omega-3 / DHA', scheduled: '20:00', status: 'Pending' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-slate-50/50 border border-slate-100">
+                <div className="flex items-center gap-3">
+                  {item.status === 'Completed' ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Circle className="w-4 h-4 text-slate-300" />}
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-800">{item.name}</span>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase">T: {item.scheduled}</span>
+                  </div>
+                </div>
+                <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${item.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                  {item.status}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <button onClick={onOpenDataModal} className="w-full py-3 rounded-xl border border-slate-200 text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+            <Bell className="w-4 h-4" />
+            Manage Reminders
+          </button>
+        </div>
+      </section>
+
+      {/* 5. LONGITUDINAL TELEMETRY (TRENDS) */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <TrendLineChart
           data={glucoseChartData}
-          title="Maternal Blood Sugar Profile Over Time"
+          title="Glycemic Variance"
           unit="mg/dL"
-          primaryLabel="2hr Post-Prandial"
-          secondaryLabel="Fasting Blood Glucose"
+          primaryLabel="Post-Prandial"
+          secondaryLabel="Fasting"
           targetMax={140}
         />
 
         <TrendLineChart
           data={bpChartData}
-          title="Blood Pressure Progression"
+          title="Vascular Pressure Telemetry"
           unit="mmHg"
-          primaryLabel="Systolic (mmHg)"
-          secondaryLabel="Diastolic (mmHg)"
+          primaryLabel="Systolic"
+          secondaryLabel="Diastolic"
           targetMax={130}
         />
-      </div>
+      </section>
 
-      {/* Bottom Hub: Nutrition Quick Banner + Doctor Clinical Notes */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Nutrition Plan Card */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-cyan-500/10 rounded-3xl p-6 border border-emerald-200/80 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
-                  <Utensils className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Personalized Prenatal Nutrition Plan</h3>
-                  <p className="text-xs text-slate-500">7-Day Glycemic Control &amp; Iron Bioavailability Guide</p>
-                </div>
-              </div>
-
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                {nutritionPlan?.dailyCalorieTarget || 1800} kcal/day
-              </span>
+      {/* 6. CLINICAL NOTES FEEDS */}
+      <section className="panel-precision p-8 rounded-[2rem] space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+              <Stethoscope className="w-5 h-5" />
             </div>
-
-            <div className="grid grid-cols-3 gap-2 my-3 text-center">
-              <div className="p-2 rounded-xl bg-white border border-slate-200">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase">Carbs (Low GI)</span>
-                <p className="text-sm font-bold text-blue-600">{nutritionPlan?.macroDistribution.carbsGrams || 195}g</p>
-              </div>
-              <div className="p-2 rounded-xl bg-white border border-slate-200">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase">Protein</span>
-                <p className="text-sm font-bold text-emerald-600">{nutritionPlan?.macroDistribution.proteinGrams || 110}g</p>
-              </div>
-              <div className="p-2 rounded-xl bg-white border border-slate-200">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase">Healthy Fats</span>
-                <p className="text-sm font-bold text-amber-600">{nutritionPlan?.macroDistribution.fatGrams || 60}g</p>
-              </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 tracking-tight">Clinical Assessment Logs</h3>
+              <p className="text-xs text-slate-500 font-medium">Verified Physician Entries</p>
             </div>
-
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Tailored for <strong>{nutritionPlan?.dietaryPreference || 'vegetarian'}</strong> preferences. Emphasizes complex carbohydrates, split-snack timing to smooth maternal insulin curves, and pairing non-heme iron with Vitamin C.
-            </p>
-          </div>
-
-          <div className="mt-4 pt-3 flex items-center justify-between border-t border-emerald-200/60">
-            <span className="text-xs text-emerald-800 font-semibold flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              Doctor Approved Protocol
-            </span>
-            <button
-              onClick={onOpenNutritionModal}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-emerald-300 shadow-2xs"
-            >
-              <span>Explore 7-Day Meal Schedule</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
           </div>
         </div>
 
-        {/* Doctor Clinical Notes */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                <Stethoscope className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Physician Clinical Notes</h3>
-                <p className="text-[11px] text-slate-500">
-                  {doctorNotes[0]?.doctorName || (patient.assignedDoctorId === 'doc-2' ? 'Dr. Rajesh Varma, MD, DGO' : 'Dr. Ananya Sharma, MD')}
-                </p>
-              </div>
-            </div>
-
-            {doctorNotes.length > 0 ? (
-              <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 text-xs text-slate-700">
-                  <p className="italic leading-relaxed">&ldquo;{doctorNotes[0].noteText}&rdquo;</p>
-                  <p className="text-[10px] text-slate-400 mt-2 font-medium">
-                    Updated {new Date(doctorNotes[0].timestamp).toLocaleDateString()}
-                  </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {doctorNotes.length > 0 ? (
+            doctorNotes.slice(0, 2).map((note, idx) => (
+              <div key={idx} className="p-6 rounded-2xl bg-slate-50 border border-slate-100 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase">{new Date(note.timestamp).toLocaleDateString()}</span>
+                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">{note.doctorName}</span>
                 </div>
-
-                {doctorNotes[0].recommendations && doctorNotes[0].recommendations.length > 0 && (
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Action Items</span>
-                    {doctorNotes[0].recommendations.map((rec, i) => (
-                      <div key={i} className="flex items-start gap-1.5 text-xs text-slate-700">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                        <span>{rec}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <p className="text-sm text-slate-700 leading-relaxed font-medium">{note.noteText}</p>
+                <div className="pt-4 border-t border-slate-200/60 flex flex-wrap gap-2">
+                  {note.recommendations.map((rec, rIdx) => (
+                    <span key={rIdx} className="text-[10px] font-bold bg-white text-slate-600 px-2 py-1 rounded-md border border-slate-100 shadow-sm">
+                      ● {rec}
+                    </span>
+                  ))}
+                </div>
               </div>
-            ) : (
-              <p className="text-xs text-slate-500 italic">No notes logged by physician yet.</p>
-            )}
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-slate-100">
-            <button
-              onClick={onOpenChat}
-              className="w-full py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Discuss results with MatraCare AI</span>
-            </button>
-          </div>
+            ))
+          ) : (
+            <div className="col-span-full py-12 text-center text-slate-400 font-mono text-[10px] uppercase tracking-widest">
+              No clinical telemetry notes archived.
+            </div>
+          )}
         </div>
-
-        {/* Doctor-Patient Direct Messaging Channel Card */}
-        <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-md flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
-                  <MessageSquare className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Direct Doctor Communication</h3>
-                  <p className="text-[11px] text-slate-300">
-                    {patient.assignedDoctorId === 'doc-2' ? 'Dr. Rajesh Varma, MD (Gynae-Oncology)' : 'Dr. Ananya Sharma, MD (OB/GYN)'}
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Active
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-white/10 border border-white/10 text-xs space-y-1.5 backdrop-blur-xs">
-              <div className="flex items-center justify-between text-[10px] text-indigo-200">
-                <span className="font-semibold">Recent Physician Reply:</span>
-                <span>2 hours ago</span>
-              </div>
-              <p className="text-slate-100 text-[11px] leading-relaxed italic">
-                &ldquo;92 mg/dL fasting is right in our target zone. Keep up steady hydration and supplement adherence...&rdquo;
-              </p>
-            </div>
-
-            <div className="mt-3 space-y-1.5 text-[11px] text-slate-300">
-              <div className="flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <span>End-to-end encrypted clinical messaging</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <span>Average clinician response time: &lt; 2 hours</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-white/10">
-            <button
-              onClick={onOpenCommunication}
-              className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>Open Doctor Communication Panel</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 };

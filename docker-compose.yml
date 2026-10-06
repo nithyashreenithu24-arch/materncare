@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  matracare-app:
+  matern-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: matracare-ai-platform
+    container_name: matern-ai-platform
     ports:
       - "3000:3000"
     environment:

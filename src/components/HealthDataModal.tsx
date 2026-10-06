@@ -75,6 +75,7 @@ export const HealthDataModal: React.FC<HealthDataModalProps> = ({
   const [tookDhaOmega3, setTookDhaOmega3] = useState(initialData?.supplementAdherence?.dhaOmega3 ?? true);
   const [adherenceRating, setAdherenceRating] = useState<'Full' | 'Partial' | 'Missed'>(initialData?.supplementAdherence?.adherenceRating || 'Full');
   const [supplementNotes, setSupplementNotes] = useState(initialData?.supplementAdherence?.notes || '');
+  const [dietaryPreference, setDietaryPreference] = useState<'vegetarian' | 'non-vegetarian' | 'vegan' | 'eggetarian'>('vegetarian');
   
   // Daily Reminder Toggle (Saves directly to user profile)
   const [reminderEnabled, setReminderEnabled] = useState(initialData?.supplementAdherence?.reminderEnabled ?? true);
@@ -142,6 +143,7 @@ export const HealthDataModal: React.FC<HealthDataModalProps> = ({
         chronicDiseases: chronicDiseasesInput.split(',').map((s) => s.trim()).filter(Boolean),
         medications: medicationsInput.split(',').map((s) => s.trim()).filter(Boolean),
         allergies: allergiesInput.split(',').map((s) => s.trim()).filter(Boolean),
+        dietaryPreference,
         notes,
       });
       onClose();
@@ -308,6 +310,27 @@ export const HealthDataModal: React.FC<HealthDataModalProps> = ({
                     {calculatedBmi} kg/m²
                   </div>
                 </div>
+              </div>
+
+              <div className="p-3.5 bg-emerald-50/50 rounded-2xl border border-emerald-100 space-y-2">
+                <label className="block font-bold text-slate-800 text-[11px] uppercase tracking-wider">Clinical Dietary Preference</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {(['vegetarian', 'non-vegetarian', 'vegan', 'eggetarian'] as const).map((pref) => (
+                    <button
+                      key={pref}
+                      type="button"
+                      onClick={() => setDietaryPreference(pref)}
+                      className={`py-2 px-2 rounded-xl font-bold text-[10px] capitalize transition-all border ${
+                        dietaryPreference === pref
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {pref}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-500 italic">This selection will instantly recalibrate your 7-day clinical meal plan upon submission.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

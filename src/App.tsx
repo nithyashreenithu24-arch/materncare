@@ -15,11 +15,8 @@ import {
   Heart,
   ShieldCheck,
   Lock,
-  FileText,
-  Activity,
-  AlertCircle,
   CheckCircle2,
-  RefreshCw,
+  LogIn,
 } from 'lucide-react';
 
 export default function App() {
@@ -58,31 +55,49 @@ export default function App() {
   const loadInitialData = async () => {
     setIsLoading(true);
     try {
-      // Load current user (defaults to pat-1)
-      const userRes = await api.getCurrentUser();
-      setCurrentUser(userRes.user);
-
-      // Load patient 1 details
-      const patId = userRes.user.role === 'patient' ? userRes.user.id : 'pat-1';
-      const [recs, preds, nutr, pts] = await Promise.all([
-        api.getHealthRecords(patId),
-        api.getPredictions(patId),
-        api.getNutritionPlan(patId),
-        api.getPatients(),
-      ]);
-
-      setPatientRecords(recs);
-      setPredictions(preds);
-      setNutritionPlan(nutr);
-      setAllPatients(pts);
-
-      // Extract notes
-      const patData = pts.find((p) => p.id === patId);
-      if (patData && patData.notes) {
-        setDoctorNotes(patData.notes);
+      const token = localStorage.getItem('matern_token');
+      if (!token) {
+        setIsLoading(false);
+        return;
       }
-    } catch (err) {
-      console.error('Initial data load error:', err);
+
+      // Load current user
+      const userRes = await api.getCurrentUser(token);
+      setCurrentUser(userRes.user);
+      setActiveTab(userRes.user.role);
+
+      // Load specific data based on role
+      if (userRes.user.role === 'patient') {
+        const patId = userRes.user.id;
+        const [recs, preds, nutr] = await Promise.all([
+          api.getHealthRecords(patId),
+          api.getPredictions(patId),
+          api.getNutritionPlan(patId),
+        ]);
+        setPatientRecords(recs);
+        setPredictions(preds);
+        setNutritionPlan(nutr);
+        
+        // Extract notes from patient details if available
+        const details = await api.getPatientDetails(patId);
+        setDoctorNotes(details.notes || []);
+      } else if (userRes.user.role === 'doctor') {
+        const pts = await api.getPatients();
+        setAllPatients(pts);
+        if (pts.length > 0) {
+          setSelectedDoctorPatientId(pts[0].id);
+        }
+      } else if (userRes.user.role === 'admin') {
+        const pts = await api.getPatients();
+        setAllPatients(pts);
+      }
+    } catch (err: any) {
+      // Don't log expected 401 errors to console during initial boot
+      if (err.message !== 'Not authenticated') {
+        console.error('Initial data load error:', err);
+      }
+      localStorage.removeItem('matern_token');
+      setCurrentUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -92,49 +107,11 @@ export default function App() {
     loadInitialData();
   }, []);
 
-  // Handle Demo Switching
-  const handleSwitchDemo = async (role: 'patient' | 'doctor' | 'admin', targetId?: string) => {
-    try {
-      const res = await api.switchDemo(role, targetId);
-      setCurrentUser(res.user);
-      localStorage.setItem('matracare_token', res.token);
-
-      if (role === 'patient') {
-        setActiveTab('patient');
-        const patId = res.user.id;
-        const [recs, preds, nutr] = await Promise.all([
-          api.getHealthRecords(patId),
-          api.getPredictions(patId),
-          api.getNutritionPlan(patId),
-        ]);
-        setPatientRecords(recs);
-        setPredictions(preds);
-        setNutritionPlan(nutr);
-        showToast(`Switched view to Patient: ${res.user.name}`);
-      } else if (role === 'doctor') {
-        setActiveTab('doctor');
-        const pts = await api.getPatients();
-        setAllPatients(pts);
-        if (targetId === 'doc-2') {
-          setSelectedDoctorPatientId('pat-3');
-        } else {
-          setSelectedDoctorPatientId('pat-1');
-        }
-        showToast(`Switched view to Clinician: ${res.user.name}`);
-      } else if (role === 'admin') {
-        setActiveTab('admin');
-        showToast(`Switched view to Admin: ${res.user.name}`);
-      }
-    } catch (err) {
-      console.error('Demo switch error:', err);
-    }
-  };
-
   // Handle Authentication (Login / Register)
   const handleLogin = async (email: string, pass: string) => {
     const res = await api.login(email, pass);
     setCurrentUser(res.user);
-    localStorage.setItem('matracare_token', res.token);
+    localStorage.setItem('matern_token', res.token);
     setActiveTab(res.user.role);
     showToast(`Signed in as ${res.user.name} (${res.user.role})`);
     await loadInitialData();
@@ -143,15 +120,19 @@ export default function App() {
   const handleRegister = async (data: any) => {
     const res = await api.register(data);
     setCurrentUser(res.user);
-    localStorage.setItem('matracare_token', res.token);
+    localStorage.setItem('matern_token', res.token);
     setActiveTab(res.user.role);
     showToast(`Account created for ${res.user.name}`);
     await loadInitialData();
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('matracare_token');
-    handleSwitchDemo('patient', 'pat-1');
+    localStorage.removeItem('matern_token');
+    setCurrentUser(null);
+    setPatientRecords([]);
+    setPredictions(undefined);
+    setAllPatients([]);
+    showToast('Signed out successfully');
   };
 
   // Submit health entry
@@ -212,16 +193,69 @@ export default function App() {
     showToast(`7-day nutrition plan regenerated for ${dietaryPreference} dietary profile.`);
   };
 
-  if (isLoading && !currentUser) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center animate-pulse">
             <Heart className="w-6 h-6 fill-white" />
           </div>
-          <p className="text-sm font-bold text-slate-800">Initializing MatraCare AI Clinical Platform...</p>
+          <p className="text-sm font-bold text-slate-800">Initializing Matern AI Clinical Platform...</p>
           <p className="text-xs text-slate-500">Loading datasets, model parameters &amp; prenatal records</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-rose-500 via-pink-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-rose-500/20 text-white mb-8">
+          <Heart className="w-10 h-10 fill-white" />
+        </div>
+        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+          Matern<span className="text-rose-600">.AI</span>
+        </h1>
+        <p className="max-w-md text-slate-600 mb-8 leading-relaxed">
+          The next generation of maternal care. Role-based access for expectant mothers, 
+          obstetricians, and clinical administrators. Powered by predictive AI.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
+          <button 
+            onClick={() => setIsAuthModalOpen(true)}
+            className="flex-1 py-3 px-6 rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2"
+          >
+            <LogIn className="w-5 h-5" />
+            Clinical Sign In
+          </button>
+          <button 
+            onClick={() => {
+              setIsAuthModalOpen(true);
+            }}
+            className="flex-1 py-3 px-6 rounded-2xl bg-white text-slate-900 font-bold hover:bg-slate-50 border border-slate-200 transition-all shadow-sm"
+          >
+            Register Patient
+          </button>
+        </div>
+        <div className="mt-12 pt-8 border-t border-slate-200 w-full max-w-md">
+          <p className="text-xs text-slate-400 font-medium uppercase tracking-widest mb-4">Enterprise Grade Security</p>
+          <div className="flex justify-center gap-8">
+            <div className="flex flex-col items-center gap-1 opacity-60">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              <span className="text-[10px] font-bold text-slate-500">HIPAA Compliant</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 opacity-60">
+              <Lock className="w-5 h-5 text-indigo-600" />
+              <span className="text-[10px] font-bold text-slate-500">256-bit AES</span>
+            </div>
+          </div>
+        </div>
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+        />
       </div>
     );
   }
@@ -239,7 +273,6 @@ export default function App() {
           setIsCommunicationOpen(true);
         }}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        onSwitchDemo={handleSwitchDemo}
         onLogout={handleLogout}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -298,7 +331,7 @@ export default function App() {
               M
             </div>
             <div>
-              <p className="font-bold text-slate-800">MatraCare AI • Maternal Health Systems</p>
+              <p className="font-bold text-slate-800">Matern AI • Maternal Health Systems</p>
               <p className="text-[11px] text-slate-400">
                 Grounded in WHO, ACOG &amp; ICMR/FOGSI Antenatal Guidelines. TLS 1.3 encrypted.
               </p>
